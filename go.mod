@@ -49,4 +49,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/panotza/gosmc v1.0.0 => github.com/xykong/gosmc v1.0.1
+replace github.com/panotza/gosmc v1.0.0 => github.com/xykong/gosmc v1.0.2
