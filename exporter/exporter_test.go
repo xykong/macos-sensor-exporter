@@ -1,9 +1,11 @@
 package exporter
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/xykong/iSMC/output"
 )
 
 func TestGetUnit(t *testing.T) {
@@ -172,6 +174,17 @@ func TestCreateNewDesc(t *testing.T) {
 }
 
 func TestSensorsCollectorDescribe(t *testing.T) {
+	// Skip if not on macOS or SMC is not accessible
+	if runtime.GOOS != "darwin" {
+		t.Skip("Skipping test: SMC is only available on macOS")
+	}
+
+	// Check if SMC is accessible
+	data := output.GetAll()
+	if len(data) == 0 {
+		t.Skip("Skipping test: SMC is not accessible (possibly running in VM or without proper permissions)")
+	}
+
 	collector := NewSensorsCollector()
 	if collector == nil {
 		t.Fatal("NewSensorsCollector returned nil")
@@ -195,6 +208,17 @@ func TestSensorsCollectorDescribe(t *testing.T) {
 }
 
 func TestSensorsCollectorCollect(t *testing.T) {
+	// Skip if not on macOS or SMC is not accessible
+	if runtime.GOOS != "darwin" {
+		t.Skip("Skipping test: SMC is only available on macOS")
+	}
+
+	// Check if SMC is accessible
+	data := output.GetAll()
+	if len(data) == 0 {
+		t.Skip("Skipping test: SMC is not accessible (possibly running in VM or without proper permissions)")
+	}
+
 	collector := NewSensorsCollector()
 	if collector == nil {
 		t.Fatal("NewSensorsCollector returned nil")
