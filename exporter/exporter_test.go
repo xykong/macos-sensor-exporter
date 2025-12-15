@@ -1,6 +1,7 @@
 package exporter
 
 import (
+	"os"
 	"runtime"
 	"testing"
 
@@ -174,9 +175,14 @@ func TestCreateNewDesc(t *testing.T) {
 }
 
 func TestSensorsCollectorDescribe(t *testing.T) {
-	// Skip if not on macOS or SMC is not accessible
+	// Skip if not on macOS
 	if runtime.GOOS != "darwin" {
 		t.Skip("Skipping test: SMC is only available on macOS")
+	}
+
+	// Skip if running in CI environment (GitHub Actions, etc.)
+	if os.Getenv("CI") != "" || os.Getenv("GITHUB_ACTIONS") != "" {
+		t.Skip("Skipping test: SMC is not accessible in CI environments")
 	}
 
 	// Check if SMC is accessible
@@ -208,9 +214,14 @@ func TestSensorsCollectorDescribe(t *testing.T) {
 }
 
 func TestSensorsCollectorCollect(t *testing.T) {
-	// Skip if not on macOS or SMC is not accessible
+	// Skip if not on macOS
 	if runtime.GOOS != "darwin" {
 		t.Skip("Skipping test: SMC is only available on macOS")
+	}
+
+	// Skip if running in CI environment (GitHub Actions, etc.)
+	if os.Getenv("CI") != "" || os.Getenv("GITHUB_ACTIONS") != "" {
+		t.Skip("Skipping test: SMC is not accessible in CI environments")
 	}
 
 	// Check if SMC is accessible
