@@ -1,0 +1,168 @@
+# GoReleaser 配置文件
+# 文档：https://goreleaser.com
+
+version: 2
+
+before:
+  hooks:
+    # 在构建之前确保依赖是最新的
+    - go mod tidy
+    - go mod download
+
+builds:
+  - id: macos-sensor-exporter
+    main: ./main.go
+    binary: macos-sensor-exporter
+    
+    # 只为 macOS 构建，因为这个工具依赖于 macOS SMC
+    goos:
+      - darwin
+    
+    goarch:
+      - amd64  # Intel Mac
+      - arm64  # Apple Silicon (M1/M2/M3)
+    
+    env:
+      - CGO_ENABLED=0
+    
+    flags:
+      - -trimpath
+    
+    ldflags:
+      # 注入版本信息和构建信息
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    
+    # 确保构建成功
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+archives:
+  - id: default
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    
+    format: tar.gz
+    
+    files:
+      - README.md
+      - README_zh.md
+      - LICENSE
+      - CHANGELOG.md
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+changelog:
+  # 从 git 提交自动生成变更日志
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - '^style:'
+      - 'README'
+      - 'Merge pull request'
+      - 'Merge branch'
+  groups:
+    - title: 'Features'
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: 'Bug Fixes'
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: 'Performance Improvements'
+      regexp: '^.*?perf(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: 'Refactors'
+      regexp: '^.*?refactor(\([[:word:]]+\))??!?:.+$'
+      order: 3
+    - title: 'Other Changes'
+      order: 999
+
+release:
+  # GitHub Release 配置
+  github:
+    owner: xykong
+    name: macos-sensor-exporter
+  
+  # 是否为草稿
+  draft: false
+  
+  # 是否为预发布版本（根据 tag 自动判断）
+  prerelease: auto
+  
+  # Release 页面的内容模板
+  header: |
+    ## macOS Sensor Exporter {{ .Tag }}
+    
+    一个用于监控 macOS 硬件传感器的 Prometheus exporter，支持温度、电压、电流、功率、电池和风扇指标。
+    
+    A Prometheus exporter for macOS hardware sensors, including temperature, voltage, current, power, battery, and fan metrics.
+  
+  footer: |
+    ---
+    
+    ### 安装 Installation
+    
+    **Intel Mac (x86_64):**
+    ```bash
+    tar -xzf macos-sensor-exporter_{{ .Version }}_Darwin_x86_64.tar.gz
+    chmod +x macos-sensor-exporter
+    sudo mv macos-sensor-exporter /usr/local/bin/
+    ```
+    
+    **Apple Silicon (arm64):**
+    ```bash
+    tar -xzf macos-sensor-exporter_{{ .Version }}_Darwin_arm64.tar.gz
+    chmod +x macos-sensor-exporter
+    sudo mv macos-sensor-exporter /usr/local/bin/
+    ```
+    
+    ### 使用 Usage
+    
+    ```bash
+    # 启动 exporter / Start exporter
+    macos-sensor-exporter start
+    
+    # 查看传感器信息 / Show sensor info
+    macos-sensor-exporter show
+    ```
+    
+    完整文档请参考：[README.md](https://github.com/xykong/macos-sensor-exporter/blob/main/README.md)
+    
+    For full documentation, see: [README.md](https://github.com/xykong/macos-sensor-exporter/blob/main/README.md)
+
+# 如果需要发布到 Homebrew，可以取消注释以下配置
+# brews:
+#   - name: macos-sensor-exporter
+#     homepage: https://github.com/xykong/macos-sensor-exporter
+#     description: "Prometheus exporter for macOS hardware sensors"
+#     license: "MIT"
+#     
+#     repository:
+#       owner: xykong
+#       name: homebrew-tap
+#       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+#     
+#     commit_author:
+#       name: goreleaserbot
+#       email: bot@goreleaser.com
+#     
+#     directory: Formula
+#     
+#     install: |
+#       bin.install "macos-sensor-exporter"
+#     
+#     test: |
+#       system "#{bin}/macos-sensor-exporter", "--version"

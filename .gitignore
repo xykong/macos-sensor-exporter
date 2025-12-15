@@ -1,3 +1,11 @@
 .vscode/
 macos-sensor-exporter
 vendor/
+
+# GoReleaser 构建产物
+dist/
+*.tar.gz
+*.zip
+*.deb
+*.rpm
+checksums.txt
