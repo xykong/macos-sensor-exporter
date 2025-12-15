@@ -26,6 +26,38 @@ English | [简体中文](README_zh.md)
 
 ## Installation
 
+### Using Homebrew (Recommended)
+
+```bash
+# Add the tap
+brew tap xykong/tap
+
+# Install
+brew install macos-sensor-exporter
+
+# Start as a service (auto-start on boot)
+brew services start macos-sensor-exporter
+
+# Or run manually
+macos-sensor-exporter start
+```
+
+**Manage the service:**
+
+```bash
+# Check service status
+brew services list
+
+# Stop the service
+brew services stop macos-sensor-exporter
+
+# Restart the service
+brew services restart macos-sensor-exporter
+
+# View logs
+tail -f $(brew --prefix)/var/log/macos-sensor-exporter.log
+```
+
 ### From Source
 
 ```bash
