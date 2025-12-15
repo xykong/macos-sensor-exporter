@@ -1,4 +1,4 @@
-module macos-sensor-exporter
+module github.com/xykong/macos-sensor-exporter
 
 go 1.24.0
 

@@ -1,11 +1,10 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
-	"macos-sensor-exporter/exporter"
+	"github.com/xykong/macos-sensor-exporter/exporter"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
