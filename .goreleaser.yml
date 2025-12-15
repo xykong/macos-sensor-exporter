@@ -23,7 +23,7 @@ builds:
       - arm64  # Apple Silicon (M1/M2/M3)
     
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
     
     flags:
       - -trimpath
