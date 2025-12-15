@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -42,5 +41,5 @@ func init() {
 	// is called directly, e.g.:
 	// showCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	viper.BindPFlag("output", startCmd.PersistentFlags().Lookup("output"))
+	viper.BindPFlag("output", showCmd.PersistentFlags().Lookup("output"))
 }

@@ -76,7 +76,7 @@ func getUnit(value interface{}) string {
 			case " rpm":
 				return "_rpm"
 			default:
-				fmt.Print(value, v[idx:])
+				log.WithField("value", value).WithField("unit", v[idx:]).Warn("unknown unit type")
 			}
 		}
 	}
@@ -104,9 +104,11 @@ func getGaugeValue(value interface{}) float64 {
 
 		if s, err := strconv.ParseFloat(v, 64); err == nil {
 			return s
+		} else {
+			log.WithError(err).WithField("value", value).Warn("failed to parse sensor value")
 		}
 	default:
-		fmt.Printf("I don't know about type %T!\n", v)
+		log.WithField("type", fmt.Sprintf("%T", v)).WithField("value", v).Warn("unknown value type")
 	}
 
 	return 0
@@ -114,6 +116,8 @@ func getGaugeValue(value interface{}) float64 {
 
 // Describe implements prometheus.Collector.
 func (l *SensorsCollector) Describe(ch chan<- *prometheus.Desc) {
+	// Use DescribeByCollect for dynamic metrics
+	prometheus.DescribeByCollect(l, ch)
 }
 
 // Collect implements prometheus.Collector.
@@ -140,10 +144,6 @@ func (l *SensorsCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 func Start() {
-	// output.OutputFactory("ascii").All()
-
-	log.Debug(output.GetAll())
-
 	collector := NewSensorsCollector()
 	prometheus.MustRegister(collector)
 
@@ -151,9 +151,24 @@ func Start() {
 	port := viper.GetInt("port")
 
 	addr := fmt.Sprintf(":%d", port)
-	log.Infof("staring server listening at %s%s", addr, pattern)
 
-	http.Handle(pattern, promhttp.Handler())
-	err := http.ListenAndServe(addr, nil)
-	log.Error(err)
+	// Create explicit mux instead of using default
+	mux := http.NewServeMux()
+	mux.Handle(pattern, promhttp.Handler())
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
+
+	server := &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
+	log.Infof("starting server listening at %s%s", addr, pattern)
+	log.Infof("health check endpoint available at %s/healthz", addr)
+
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.WithError(err).Fatal("server exited with error")
+	}
 }

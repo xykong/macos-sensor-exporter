@@ -1,11 +1,9 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -59,22 +57,33 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
-		// home, err := homedir.Dir()
-		// cobra.CheckErr(err)
-
-		// Search config in home directory with name ".cobra" (without extension).
-		// viper.AddConfigPath(home)
+		// Find home directory
+		home, err := os.UserHomeDir()
+		if err == nil {
+			viper.AddConfigPath(home)
+		}
+		// Also search in current directory
+		viper.AddConfigPath(".")
+		viper.SetConfigType("yaml")
 		viper.SetConfigName(".macos-sensor-exporter")
 	}
 
 	viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found; using defaults
+			log.Debug("No config file found, using defaults and flags")
+		} else {
+			// Config file was found but another error occurred
+			log.WithError(err).Warn("Error reading config file, using defaults and flags")
+		}
+	} else {
+		log.Infof("Using config file: %s", viper.ConfigFileUsed())
 	}
 
 	if verbose {
 		log.SetLevel(log.DebugLevel)
+		log.Debug("Verbose logging enabled")
 	}
 }
