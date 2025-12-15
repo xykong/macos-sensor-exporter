@@ -6,20 +6,20 @@ GitHub Actions release workflow 在 v1.0.4 版本上失败，原因是 SMC 测�
 
 ## 当前状态
 
-- **最新提交**: `526e414` - fix: skip SMC tests in CI environments (GitHub Actions)
-- **最新 tag**: `v1.0.5` ✅ （已修复并发布）
-- **修复内容**: 在调用 `output.GetAll()` 之前检查 CI 环境变量（CI 和 GITHUB_ACTIONS），提前跳过测试
+- **最新提交**: `4496d86` - fix: enable CGO for iSMC hid package compilation
+- **最新 tag**: `v1.0.6` ✅ （完整修复并发布）
+- **修复内容**: 
+  1. 在 CI 环境中提前跳过 SMC 测试（检查 CI 和 GITHUB_ACTIONS 环境变量）
+  2. 启用 CGO 以支持 iSMC hid 包的编译
 
 ## 问题分析
 
-之前的修复（v1.0.4）失败的原因：
-1. 虽然添加了 `output.GetAll()` 返回空数据的检查
-2. 但在 GitHub Actions 环境中，`output.GetAll()` 在尝试访问 SMC 时就会直接失败并返回错误
-3. 导致测试在 skip 逻辑之前就崩溃了
+### 问题 1: 测试失败（v1.0.4）
+- 虽然添加了 `output.GetAll()` 返回空数据的检查
+- 但在 GitHub Actions 环境中，`output.GetAll()` 在尝试访问 SMC 时就会直接失败
+- 导致测试在 skip 逻辑之前就崩溃了
 
-## 最终解决方案
-
-添加了 CI 环境变量检查：
+**解决方案**: 添加 CI 环境变量检查，在调用 `output.GetAll()` 之前就跳过
 ```go
 // Skip if running in CI environment (GitHub Actions, etc.)
 if os.Getenv("CI") != "" || os.Getenv("GITHUB_ACTIONS") != "" {
@@ -27,7 +27,16 @@ if os.Getenv("CI") != "" || os.Getenv("GITHUB_ACTIONS") != "" {
 }
 ```
 
-这样在任何 CI 环境中都会提前跳过，不会尝试访问 SMC。
+### 问题 2: 构建失败（v1.0.5）
+- GoReleaser 配置中设置了 `CGO_ENABLED=0`
+- 但 iSMC 的 hid 包使用了 `import "C"`，需要 CGO 支持
+- 导致构建时所有 Go 文件被 build constraints 排除
+
+**解决方案**: 在 `.goreleaser.yml` 中启用 CGO
+```yaml
+env:
+  - CGO_ENABLED=1  # 从 0 改为 1
+```
 
 ## 触发 Release 的步骤
 
@@ -132,8 +141,9 @@ gh run watch
 ## 版本历史
 
 - **v1.0.3** - 最后一个稳定版本（测试会在 GitHub Actions 上失败）
-- **v1.0.4** - ❌ 失败（尝试修复但不完整）
-- **v1.0.5** - ✅ 成功（完整修复，在 CI 环境中提前跳过测试）
+- **v1.0.4** - ❌ 失败（尝试修复测试但不完整）
+- **v1.0.5** - ❌ 失败（测试通过但构建失败，CGO 未启用）
+- **v1.0.6** - ✅ 成功（完整修复：CI 测试跳过 + CGO 启用）
 
 ## 回滚方法
 
@@ -170,11 +180,13 @@ gh run list --workflow=release.yml --status=failure
 ### Q: 测试在本地 macOS 机器上会运行吗？
 A: 是的，在有 SMC 硬件访问权限的本地 macOS 机器上，SMC 测试会正常运行。只在 GitHub Actions 虚拟环境中会跳过。
 
-## v1.0.5 Release 状态
+## v1.0.6 Release 状态
 
-**✅ v1.0.5 已成功发布！**
+**✅ v1.0.6 已成功发布！**
 
-tag 已推送，GitHub Actions 正在构建 release。
+tag 已推送，GitHub Actions 正在构建 release。这个版本包含了完整的修复：
+- ✅ CI 环境中自动跳过 SMC 测试
+- ✅ 启用 CGO 支持 iSMC hid 包编译
 
 ### 查看 Release 进度
 
