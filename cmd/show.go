@@ -4,9 +4,9 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"github.com/dkorunic/iSMC/output"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/xykong/iSMC/output"
 )
 
 // showCmd represents the show command
@@ -24,7 +24,7 @@ var showCmd = &cobra.Command{
 		outputType, _ := cmd.Flags().GetString("output")
 
 		// fmt.Println("show called" + outputType)
-		output.OutputFactory(outputType).All()
+		output.Factory(outputType).All()
 	},
 }
 

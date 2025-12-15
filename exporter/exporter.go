@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dkorunic/iSMC/output"
+	"github.com/xykong/iSMC/output"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
