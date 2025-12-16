@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - 2025-12-15
+## [1.1.0] - 2025-12-16
 
 ### Major Improvements - Code Modernization
 
