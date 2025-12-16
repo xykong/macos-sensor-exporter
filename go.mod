@@ -6,7 +6,7 @@ toolchain go1.24.11
 
 require (
 	github.com/spf13/cobra v1.10.2
-	github.com/xykong/iSMC v0.7.1-xykong
+	github.com/xykong/iSMC v0.10.2-xykong
 )
 
 require (
